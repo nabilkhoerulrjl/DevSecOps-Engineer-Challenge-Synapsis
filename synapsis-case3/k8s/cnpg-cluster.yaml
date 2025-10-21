@@ -1,0 +1,20 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: synapsis-pg
+  namespace: cnpg-system
+spec:
+  instances: 2                  # 2 replica sesuai permintaan
+  storage:
+    size: 10Gi                  # persistent disk 10 GiB
+  postgresql:
+    version: "15"               # versi PostgreSQL
+    parameters:
+      max_connections: "1000"
+      shared_preload_libraries: "pgaudit"
+    users:
+      postgres:
+        password: SynapsisChall2025
+  enableSuperuserAccess: true
+  service:
+    type: NodePort               # expose via NodePort
