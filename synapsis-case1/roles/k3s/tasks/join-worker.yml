@@ -1,0 +1,8 @@
+- name: Copy master token to worker
+  copy:
+    src: "./roles/k3s/files/master_token.txt"
+    dest: /tmp/node-token
+
+- name: Install K3s Worker
+  shell: |
+    curl -sfL https://get.k3s.io | K3S_URL="https://192.168.10.201:6443" K3S_TOKEN=$(cat /tmp/node-token) sh -

@@ -1,0 +1,46 @@
+- name: Install / upgrade K3s master
+  hosts: master
+  become: yes
+  vars:
+    kubeconfig_local_folder: ./synapsis-case1/kubeconfig
+    kubeconfig_local_file: "{{ kubeconfig_local_folder }}/k3s.yaml"
+    ansible_vault_password_file: /home/ubuntu/.vault_pass.txt
+  roles:
+    - role: k3s
+      k3s_role: master
+
+  tasks:
+
+    - name: Ensure local kubeconfig folder exists
+      file:
+        path: "{{ kubeconfig_local_folder }}"
+        state: directory
+        mode: '0755'
+
+    - name: Fetch kubeconfig from master
+      copy:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: "{{ kubeconfig_local_file }}"
+        remote_src: yes
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0644'
+
+    - name: Encrypt kubeconfig
+      command: ansible-vault encrypt "{{ kubeconfig_local_file }}" --vault-password-file "{{ ansible_vault_password_file }}"
+      args:
+        creates: "{{ kubeconfig_local_file }}.vault"  # tidak encrypt ulang kalau sudah
+
+- name: Join K3s workers
+  hosts: workers
+  become: yes
+  roles:
+    - role: k3s
+      k3s_role: worker
+
+- name: Upgrade K3s cluster
+  hosts: all
+  become: yes
+  roles:
+    - role: k3s
+      k3s_role: upgrade

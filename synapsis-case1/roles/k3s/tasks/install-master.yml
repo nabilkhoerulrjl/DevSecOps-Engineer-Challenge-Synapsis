@@ -1,0 +1,14 @@
+- name: Install K3s Master
+  shell: |
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --cluster-init" sh -
+  args:
+    creates: /etc/rancher/k3s/k3s.yaml
+
+- name: Get Master Token
+  shell: cat /var/lib/rancher/k3s/server/node-token
+  register: master_token
+
+- name: Save master token to local file
+  copy:
+    content: "{{ master_token.stdout }}"
+    dest: "./roles/k3s/files/master_token.txt"
